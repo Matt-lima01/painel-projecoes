@@ -1,5 +1,4 @@
-1. Acesse https://streamlit.io/cloud
-2. Crie um repositório chamado painel-erp-completo
-3. Suba os arquivos app.py, requirements.txt e instrucoes.txt
-4. No Streamlit Cloud, clique em 'New app' e selecione o repositório
-5. Deploy com app.py como arquivo principal
+1. Crie um repositório: painel-du-nada-pro
+2. Suba: app.py, requirements.txt e instrucoes.txt
+3. Vá em https://streamlit.io/cloud > New app
+4. Publique com app.py como arquivo principal
