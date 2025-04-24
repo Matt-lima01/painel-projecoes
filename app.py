@@ -1,91 +1,80 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Painel de Gestão da Pizzaria", layout="wide")
-st.title("🍕 Painel Central de Gestão - Pizzaria Estilo Pizza Prime")
+st.set_page_config(page_title="Gestão Pizzaria - CMV Inteligente", layout="wide")
+st.title("📊 Painel de Gestão com CMV Inteligente")
 
-# Navegação
 aba = st.sidebar.radio("Navegação", [
-    "Dados da Pizzaria",
-    "Equipe",
+    "Insumos",
     "Produtos e CMV",
-    "Financeiro",
-    "Projeções"
+    "CMV Global",
 ])
 
-# Sessões salvas
-if "funcionarios" not in st.session_state:
-    st.session_state["funcionarios"] = []
+# Sessões
+if "insumos" not in st.session_state:
+    st.session_state["insumos"] = []
+
 if "produtos" not in st.session_state:
     st.session_state["produtos"] = []
-if "financeiro" not in st.session_state:
-    st.session_state["financeiro"] = {"ticket": 69, "pedidos": 600, "fixo": 1200}
 
-# Aba 1: Dados da Pizzaria
-if aba == "Dados da Pizzaria":
-    st.header("📍 Informações da Pizzaria")
-    nome = st.text_input("Nome da Pizzaria", "Du-Nada Pizzaria")
-    endereco = st.text_input("Endereço", "Tv. Tancredo Neves - Cabanagem")
-    tipo = st.selectbox("Tipo de operação", ["Delivery", "Salão", "Ambos"])
-    st.success(f"{nome} cadastrada como operação '{tipo}' em {endereco}.")
-
-# Aba 2: Equipe
-if aba == "Equipe":
-    st.header("👨‍🍳 Cadastro de Funcionários")
-    with st.form("cad_func"):
-        nome = st.text_input("Nome do Funcionário")
-        cargo = st.selectbox("Cargo", ["Pizzaiolo", "Atendente", "Entregador", "Gerente"])
-        salario = st.number_input("Salário", min_value=0.0, step=100.0)
-        bonus = st.number_input("Bônus Variável", min_value=0.0, step=50.0)
-        enviar = st.form_submit_button("Cadastrar")
-        if enviar:
-            st.session_state["funcionarios"].append({
-                "Nome": nome, "Cargo": cargo, "Salário": salario, "Bônus": bonus
+# Insumos
+if aba == "Insumos":
+    st.header("📦 Cadastro de Insumos")
+    with st.form("form_insumo"):
+        nome = st.text_input("Nome do Ingrediente")
+        preco_unit = st.number_input("Preço por unidade (R$)", min_value=0.0, step=0.1)
+        unidade = st.selectbox("Unidade", ["kg", "litro", "unid", "pacote"])
+        adicionar = st.form_submit_button("Cadastrar Insumo")
+        if adicionar:
+            st.session_state["insumos"].append({
+                "Ingrediente": nome, "Preço Unitário": preco_unit, "Unidade": unidade
             })
-            st.success("Funcionário cadastrado com sucesso!")
-    st.subheader("Equipe Atual")
-    st.dataframe(pd.DataFrame(st.session_state["funcionarios"]))
+            st.success("Insumo cadastrado!")
+    st.subheader("Insumos Cadastrados")
+    st.dataframe(pd.DataFrame(st.session_state["insumos"]))
 
-# Aba 3: Produtos e CMV
+# Produtos e CMV
 if aba == "Produtos e CMV":
-    st.header("📦 Cadastro de Produtos e Cálculo de CMV")
-    with st.form("cad_prod"):
-        nome = st.text_input("Produto")
-        preco = st.number_input("Preço de Venda", min_value=0.0, step=1.0)
-        custo = st.number_input("Custo dos Ingredientes", min_value=0.0, step=1.0)
-        add = st.form_submit_button("Adicionar")
-        if add:
-            cmv = (custo / preco) * 100 if preco > 0 else 0
+    st.header("🍕 Cadastro de Produtos com Custo")
+    insumos = [i["Ingrediente"] for i in st.session_state["insumos"]]
+    with st.form("form_produto"):
+        nome_produto = st.text_input("Nome do Produto")
+        preco_venda = st.number_input("Preço de Venda", min_value=0.0)
+        custo_total = st.number_input("Custo Total (soma dos insumos usados)", min_value=0.0)
+        cadastrar = st.form_submit_button("Cadastrar Produto")
+        if cadastrar:
+            cmv = (custo_total / preco_venda) * 100 if preco_venda > 0 else 0
             st.session_state["produtos"].append({
-                "Produto": nome, "Preço": preco, "Custo": custo, "CMV (%)": round(cmv, 2)
+                "Produto": nome_produto,
+                "Preço de Venda": preco_venda,
+                "Custo Total": custo_total,
+                "CMV (%)": round(cmv, 2)
             })
-            st.success("Produto adicionado com sucesso!")
-    st.subheader("Cardápio e CMV")
+            st.success("Produto cadastrado!")
+    st.subheader("Cardápio com CMV")
     st.dataframe(pd.DataFrame(st.session_state["produtos"]))
 
-# Aba 4: Financeiro
-if aba == "Financeiro":
-    st.header("💰 Dados Financeiros")
-    ticket = st.number_input("Ticket Médio (R$)", value=st.session_state["financeiro"]["ticket"])
-    pedidos = st.number_input("Pedidos por mês", value=st.session_state["financeiro"]["pedidos"])
-    fixo = st.number_input("Custo Fixo Mensal (R$)", value=st.session_state["financeiro"]["fixo"])
-    st.session_state["financeiro"] = {"ticket": ticket, "pedidos": pedidos, "fixo": fixo}
-    receita = ticket * pedidos
-    lucro_bruto = receita * 0.56
-    lucro_liquido = lucro_bruto - fixo
-    st.metric("Faturamento Mensal", f"R${receita:.2f}")
-    st.metric("Lucro Bruto (CMV 44%)", f"R${lucro_bruto:.2f}")
-    st.metric("Lucro Líquido", f"R${lucro_liquido:.2f}")
+# CMV Global
+if aba == "CMV Global":
+    st.header("📈 Diagnóstico do CMV Global")
+    produtos = pd.DataFrame(st.session_state["produtos"])
+    if not produtos.empty:
+        receita_total = produtos["Preço de Venda"].sum()
+        custo_total = produtos["Custo Total"].sum()
+        cmv_global = (custo_total / receita_total) * 100 if receita_total > 0 else 0
 
-# Aba 5: Projeções
-if aba == "Projeções":
-    st.header("📈 Simulador Estratégico")
-    aumento_pct = st.slider("Aumento nas vendas (%)", 0, 50, 10)
-    fidel_pct = st.slider("Fidelização de clientes (%)", 48, 80, 55)
-    base = st.session_state["financeiro"]
-    receita_proj = base["ticket"] * base["pedidos"] * (1 + aumento_pct / 100)
-    lucro_proj = receita_proj * (1 - 0.44) - base["fixo"]
-    st.subheader("Resultados Simulados")
-    st.metric("Nova Receita", f"R${receita_proj:.2f}")
-    st.metric("Lucro Projetado", f"R${lucro_proj:.2f}")
-    st.write(f"Com {fidel_pct}% de clientes recorrentes e {aumento_pct}% de vendas a mais.")
+        if cmv_global <= 35:
+            cor = "green"
+            status = "Excelente"
+        elif cmv_global <= 44:
+            cor = "orange"
+            status = "Atenção"
+        else:
+            cor = "red"
+            status = "Alerta"
+
+        st.markdown(f"<h2 style='color:{cor}'>CMV Global: {cmv_global:.2f}% - {status}</h2>", unsafe_allow_html=True)
+        st.metric("Receita Total", f"R${receita_total:.2f}")
+        st.metric("Custo Total", f"R${custo_total:.2f}")
+    else:
+        st.info("Cadastre produtos primeiro para calcular o CMV.")

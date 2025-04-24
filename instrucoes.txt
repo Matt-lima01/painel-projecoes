@@ -1,7 +1,4 @@
-INSTRUÇÕES:
-
 1. Instale o Python: https://python.org
-2. Rode no terminal:
-   pip install -r requirements.txt
-   streamlit run app.py
-3. Acesse http://localhost:8501 no navegador
+2. pip install -r requirements.txt
+3. streamlit run app.py
+4. Acesse http://localhost:8501 no navegador
