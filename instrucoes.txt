@@ -1,4 +1,5 @@
-1. Instale o Python: https://python.org
-2. pip install -r requirements.txt
-3. streamlit run app.py
-4. Acesse http://localhost:8501 no navegador
+1. Acesse https://streamlit.io/cloud
+2. Crie um repositório chamado painel-erp-completo
+3. Suba os arquivos app.py, requirements.txt e instrucoes.txt
+4. No Streamlit Cloud, clique em 'New app' e selecione o repositório
+5. Deploy com app.py como arquivo principal

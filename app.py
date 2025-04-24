@@ -1,80 +1,126 @@
+
+# Estrutura completa do Painel ERP Profissional - Du-Nada Pizzaria
+
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
-st.set_page_config(page_title="Gestão Pizzaria - CMV Inteligente", layout="wide")
-st.title("📊 Painel de Gestão com CMV Inteligente")
+st.set_page_config(page_title="ERP Du-Nada Pizzaria", layout="wide")
 
-aba = st.sidebar.radio("Navegação", [
-    "Insumos",
-    "Produtos e CMV",
-    "CMV Global",
+# Sidebar com logo e menu
+st.sidebar.image("https://img.icons8.com/color/96/pizza.png", width=70)
+st.sidebar.title("Du-Nada Pizzaria")
+menu = st.sidebar.radio("Menu", [
+    "Dashboard Geral",
+    "Produtos e Ficha Técnica",
+    "Estoque",
+    "Equipe",
+    "Clientes",
+    "Simuladores",
+    "Financeiro"
 ])
 
-# Sessões
-if "insumos" not in st.session_state:
-    st.session_state["insumos"] = []
-
+# Sessões para armazenar dados temporários
 if "produtos" not in st.session_state:
-    st.session_state["produtos"] = []
+    st.session_state.produtos = []
+if "insumos" not in st.session_state:
+    st.session_state.insumos = []
+if "clientes" not in st.session_state:
+    st.session_state.clientes = []
+if "funcionarios" not in st.session_state:
+    st.session_state.funcionarios = []
 
-# Insumos
-if aba == "Insumos":
-    st.header("📦 Cadastro de Insumos")
-    with st.form("form_insumo"):
-        nome = st.text_input("Nome do Ingrediente")
-        preco_unit = st.number_input("Preço por unidade (R$)", min_value=0.0, step=0.1)
-        unidade = st.selectbox("Unidade", ["kg", "litro", "unid", "pacote"])
-        adicionar = st.form_submit_button("Cadastrar Insumo")
-        if adicionar:
-            st.session_state["insumos"].append({
-                "Ingrediente": nome, "Preço Unitário": preco_unit, "Unidade": unidade
-            })
-            st.success("Insumo cadastrado!")
-    st.subheader("Insumos Cadastrados")
-    st.dataframe(pd.DataFrame(st.session_state["insumos"]))
+# Dashboard Geral
+if menu == "Dashboard Geral":
+    st.title("📊 Visão Geral do Negócio")
+    receita = sum([p['Preço'] for p in st.session_state.produtos])
+    custo = sum([p['Custo'] for p in st.session_state.produtos])
+    cmv = (custo / receita) * 100 if receita > 0 else 0
+    lucro = receita - custo
 
-# Produtos e CMV
-if aba == "Produtos e CMV":
-    st.header("🍕 Cadastro de Produtos com Custo")
-    insumos = [i["Ingrediente"] for i in st.session_state["insumos"]]
+    st.metric("Faturamento Estimado", f"R$ {receita:,.2f}")
+    st.metric("Lucro Bruto Estimado", f"R$ {lucro:,.2f}")
+    st.metric("CMV Global", f"{cmv:.2f}%")
+
+    fig = px.pie(values=[52, 48], names=["Novos Clientes", "Recorrentes"], title="Origem das Vendas")
+    st.plotly_chart(fig, use_container_width=True)
+
+# Produtos e Ficha Técnica
+elif menu == "Produtos e Ficha Técnica":
+    st.title("🍕 Cadastro de Produtos e CMV")
     with st.form("form_produto"):
-        nome_produto = st.text_input("Nome do Produto")
-        preco_venda = st.number_input("Preço de Venda", min_value=0.0)
-        custo_total = st.number_input("Custo Total (soma dos insumos usados)", min_value=0.0)
-        cadastrar = st.form_submit_button("Cadastrar Produto")
+        nome = st.text_input("Nome do Produto")
+        preco = st.number_input("Preço de Venda", min_value=0.0, step=0.1)
+        custo = st.number_input("Custo Total de Insumos", min_value=0.0, step=0.1)
+        cadastrar = st.form_submit_button("Cadastrar")
         if cadastrar:
-            cmv = (custo_total / preco_venda) * 100 if preco_venda > 0 else 0
-            st.session_state["produtos"].append({
-                "Produto": nome_produto,
-                "Preço de Venda": preco_venda,
-                "Custo Total": custo_total,
-                "CMV (%)": round(cmv, 2)
-            })
-            st.success("Produto cadastrado!")
-    st.subheader("Cardápio com CMV")
-    st.dataframe(pd.DataFrame(st.session_state["produtos"]))
+            cmv = (custo / preco) * 100 if preco > 0 else 0
+            st.session_state.produtos.append({"Produto": nome, "Preço": preco, "Custo": custo, "CMV": round(cmv, 2)})
+            st.success("Produto cadastrado com sucesso!")
+    st.dataframe(pd.DataFrame(st.session_state.produtos))
 
-# CMV Global
-if aba == "CMV Global":
-    st.header("📈 Diagnóstico do CMV Global")
-    produtos = pd.DataFrame(st.session_state["produtos"])
-    if not produtos.empty:
-        receita_total = produtos["Preço de Venda"].sum()
-        custo_total = produtos["Custo Total"].sum()
-        cmv_global = (custo_total / receita_total) * 100 if receita_total > 0 else 0
+# Estoque
+elif menu == "Estoque":
+    st.title("📦 Controle de Estoque")
+    with st.form("form_estoque"):
+        ingrediente = st.text_input("Nome do Ingrediente")
+        unidade = st.selectbox("Unidade", ["kg", "litro", "unid", "pacote"])
+        preco_unit = st.number_input("Preço Unitário", min_value=0.0)
+        quantidade = st.number_input("Quantidade em Estoque", min_value=0.0)
+        adicionar = st.form_submit_button("Adicionar")
+        if adicionar:
+            st.session_state.insumos.append({"Ingrediente": ingrediente, "Unidade": unidade, "Preço Unit": preco_unit, "Qtd": quantidade})
+            st.success("Ingrediente adicionado!")
+    st.dataframe(pd.DataFrame(st.session_state.insumos))
 
-        if cmv_global <= 35:
-            cor = "green"
-            status = "Excelente"
-        elif cmv_global <= 44:
-            cor = "orange"
-            status = "Atenção"
-        else:
-            cor = "red"
-            status = "Alerta"
+# Equipe
+elif menu == "Equipe":
+    st.title("👥 Equipe da Pizzaria")
+    with st.form("form_func"):
+        nome = st.text_input("Nome do Funcionário")
+        cargo = st.selectbox("Cargo", ["Pizzaiolo", "Atendente", "Entregador", "Gerente"])
+        salario = st.number_input("Salário Mensal", min_value=0.0)
+        bonus = st.number_input("Bônus Mensal", min_value=0.0)
+        cadastrar = st.form_submit_button("Cadastrar Funcionário")
+        if cadastrar:
+            st.session_state.funcionarios.append({"Nome": nome, "Cargo": cargo, "Salário": salario, "Bônus": bonus})
+            st.success("Funcionário cadastrado!")
+    st.dataframe(pd.DataFrame(st.session_state.funcionarios))
 
-        st.markdown(f"<h2 style='color:{cor}'>CMV Global: {cmv_global:.2f}% - {status}</h2>", unsafe_allow_html=True)
-        st.metric("Receita Total", f"R${receita_total:.2f}")
-        st.metric("Custo Total", f"R${custo_total:.2f}")
-    else:
-        st.info("Cadastre produtos primeiro para calcular o CMV.")
+# Clientes
+elif menu == "Clientes":
+    st.title("📇 Gestão de Clientes e Fidelização")
+    with st.form("form_cliente"):
+        nome = st.text_input("Nome do Cliente")
+        recorrente = st.checkbox("É cliente recorrente?")
+        cadastrar = st.form_submit_button("Cadastrar Cliente")
+        if cadastrar:
+            st.session_state.clientes.append({"Nome": nome, "Recorrente": recorrente})
+            st.success("Cliente cadastrado!")
+    st.dataframe(pd.DataFrame(st.session_state.clientes))
+
+# Simuladores
+elif menu == "Simuladores":
+    st.title("📈 Simulador Estratégico")
+    aumento = st.slider("Aumento estimado de vendas (%)", 0, 50, 10)
+    fidel = st.slider("Fidelização prevista (%)", 48, 80, 52)
+    receita_atual = sum([p['Preço'] for p in st.session_state.produtos])
+    nova_receita = receita_atual * (1 + aumento / 100)
+    lucro = nova_receita * 0.56
+    st.metric("Nova Receita Estimada", f"R$ {nova_receita:,.2f}")
+    st.metric("Lucro Estimado", f"R$ {lucro:,.2f}")
+    st.metric("Clientes Recorrentes", f"{fidel}%")
+
+# Financeiro
+elif menu == "Financeiro":
+    st.title("💰 Painel Financeiro Completo")
+    receita = sum([p['Preço'] for p in st.session_state.produtos])
+    custo = sum([p['Custo'] for p in st.session_state.produtos])
+    folha = sum([f['Salário'] + f['Bônus'] for f in st.session_state.funcionarios])
+    despesas_fixas = folha + 1200  # exemplo com R$1200 fixos
+    lucro_liquido = receita - custo - despesas_fixas
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Receita Total", f"R$ {receita:,.2f}")
+    col2.metric("Custos Totais", f"R$ {custo + despesas_fixas:,.2f}")
+    col3.metric("Lucro Líquido", f"R$ {lucro_liquido:,.2f}")
