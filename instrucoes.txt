@@ -1,6 +1,7 @@
-1. Crie um repositório no GitHub chamado painel-projecoes
-2. Faça upload dos arquivos: app.py, requirements.txt e instrucoes.txt
-3. Vá para https://streamlit.io/cloud
-4. Clique em 'New app' e selecione esse repositório
-5. Deploy com app.py como arquivo principal
-Pronto, acesse direto do seu celular!
+INSTRUÇÕES:
+
+1. Instale o Python: https://python.org
+2. Rode no terminal:
+   pip install -r requirements.txt
+   streamlit run app.py
+3. Acesse http://localhost:8501 no navegador
