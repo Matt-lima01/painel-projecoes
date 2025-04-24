@@ -2,28 +2,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
 st.set_page_config(page_title="ERP Du-Nada", layout="wide")
-
-# Menu lateral
 st.sidebar.image("https://img.icons8.com/color/96/pizza.png", width=70)
 st.sidebar.markdown("## Du-Nada Pizzaria")
 menu = st.sidebar.radio("Menu", [
-    "Dashboard",
-    "Produtos",
-    "Estoque",
-    "Vendas",
-    "Funcionários",
-    "Simulador",
-    "Financeiro"
+    "Dashboard", "Produtos", "Estoque", "Vendas", "Funcionários", "Simulador", "Financeiro"
 ])
-
-# Inicializar dados
 for var in ["produtos", "insumos", "vendas", "funcionarios"]:
     if var not in st.session_state:
         st.session_state[var] = []
-
-# Dashboard
 if menu == "Dashboard":
     st.title("📊 Dashboard Geral")
     vendas = pd.DataFrame(st.session_state.vendas)
@@ -38,10 +25,7 @@ if menu == "Dashboard":
         col2.metric("Lucro Bruto", f"R$ {lucro:,.2f}")
         col3.metric("Ticket Médio", f"R$ {receita / len(vendas):,.2f}")
         col4.markdown(f"<h3 style='color:{color}'>CMV: {cmv:.2f}%</h3>", unsafe_allow_html=True)
-    else:
-        st.info("Registre vendas para visualizar os indicadores.")
-
-# Produtos
+    else: st.info("Registre vendas para visualizar os indicadores.")
 elif menu == "Produtos":
     st.title("🍕 Cadastro de Produtos")
     with st.form("form_produto"):
@@ -60,8 +44,6 @@ elif menu == "Produtos":
             })
             st.success("Produto cadastrado!")
     st.dataframe(pd.DataFrame(st.session_state.produtos))
-
-# Estoque
 elif menu == "Estoque":
     st.title("📦 Estoque")
     with st.form("form_estoque"):
@@ -72,13 +54,10 @@ elif menu == "Estoque":
             st.session_state.insumos.append({"Ingrediente": nome, "Unidade": unidade, "Preço Unit": preco_unit})
             st.success("Insumo cadastrado!")
     st.dataframe(pd.DataFrame(st.session_state.insumos))
-
-# Vendas
 elif menu == "Vendas":
     st.title("🧾 Registro de Vendas")
     produtos = pd.DataFrame(st.session_state.produtos)
-    if produtos.empty:
-        st.warning("Cadastre produtos primeiro.")
+    if produtos.empty: st.warning("Cadastre produtos primeiro.")
     else:
         with st.form("form_venda"):
             nome = st.selectbox("Produto Vendido", produtos["Produto"])
@@ -89,8 +68,6 @@ elif menu == "Vendas":
                 })
                 st.success("Venda registrada.")
     st.dataframe(pd.DataFrame(st.session_state.vendas))
-
-# Funcionários
 elif menu == "Funcionários":
     st.title("👥 Equipe da Pizzaria")
     with st.form("form_func"):
@@ -104,8 +81,6 @@ elif menu == "Funcionários":
             })
             st.success("Funcionário cadastrado.")
     st.dataframe(pd.DataFrame(st.session_state.funcionarios))
-
-# Simulador
 elif menu == "Simulador":
     st.title("📈 Simulador")
     pct = st.slider("Crescimento (%)", 0, 100, 20)
@@ -115,10 +90,7 @@ elif menu == "Simulador":
         nova = receita * (1 + pct / 100)
         st.metric("Atual", f"R$ {receita:,.2f}")
         st.metric("Projetado", f"R$ {nova:,.2f}")
-    else:
-        st.info("Sem vendas registradas.")
-
-# Financeiro
+    else: st.info("Sem vendas registradas.")
 elif menu == "Financeiro":
     st.title("💰 Financeiro")
     vendas = pd.DataFrame(st.session_state.vendas)
@@ -131,5 +103,4 @@ elif menu == "Financeiro":
         col1.metric("Receita", f"R$ {receita:,.2f}")
         col2.metric("Custos", f"R$ {custo + folha:,.2f}")
         col3.metric("Lucro Líquido", f"R$ {lucro:,.2f}")
-    else:
-        st.info("Sem dados financeiros.")
+    else: st.info("Sem dados financeiros.")
